@@ -73,8 +73,23 @@ public class BookController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @PatchMapping("/update-stock/{id}")
+    public ResponseEntity<Map<String, Object>> updateStock(
+            @PathVariable Long id,
+            @RequestParam Integer quantity) {
+        BookDTO updatedBook = bookService.updateStock(id, quantity);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Stock updated successfully");
+        response.put("updatedBook", updatedBook);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PutMapping("/update-book/{id}")
-    public ResponseEntity<Map<String, Object>> updateBook(@PathVariable Long id, @Valid @RequestBody BookDTO bookDTO) {
+    public ResponseEntity<Map<String, Object>> updateBook(
+            @PathVariable Long id,
+            @Valid @RequestBody BookDTO bookDTO) {
         BookDTO updatedBook = bookService.updateBook(id, bookDTO);
 
         Map<String, Object> response = new HashMap<>();

@@ -34,6 +34,15 @@ public class Book {
     private int pages;
 
     @Column(nullable = false)
+<<<<<<< Updated upstream
+=======
+    private Double price;
+
+    @Column(nullable = false)
+    private Integer stock = 1;
+
+    @Column(nullable = false)
+>>>>>>> Stashed changes
     private Boolean isAvailable = true;
 
 }

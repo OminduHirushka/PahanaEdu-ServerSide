@@ -91,6 +91,27 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public BookDTO updateStock(Long id, Integer quantity) {
+        Book existingBook = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+
+        if (quantity < 0 && Math.abs(quantity) > existingBook.getStock()) {
+            throw new IllegalArgumentException("Cannot reduce stock below 0");
+        }
+
+        existingBook.setStock(existingBook.getStock() - quantity);
+
+        if (existingBook.getStock() <= 0) {
+            existingBook.setIsAvailable(false);
+        } else {
+            existingBook.setIsAvailable(true);
+        }
+
+        Book savedBook = bookRepository.save(existingBook);
+        return modelMapper.map(savedBook, BookDTO.class);
+    }
+
+    @Override
     public BookDTO updateBook(Long id, BookDTO bookDTO) {
         Book existingBook = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));

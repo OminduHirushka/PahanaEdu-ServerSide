@@ -12,6 +12,7 @@ public interface BookService {
     List<BookDTO> getBooksByCategory(String category);
     List<BookDTO> getBooksByPublisher(String publisher);
     BookDTO getBookByName(String name);
+    BookDTO updateStock(Long id, Integer quantity);
     BookDTO updateBook(Long id, BookDTO bookDTO);
     void deleteBook(Long id);
 }
