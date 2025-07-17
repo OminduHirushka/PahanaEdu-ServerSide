@@ -30,15 +30,12 @@ public class BookDTO {
 
     private int pages;
 
-<<<<<<< Updated upstream
-=======
     @NotNull(message = "Price is required")
     private Double price;
 
     @NotNull(message = "Stock is required")
     private Integer stock = 1;
 
->>>>>>> Stashed changes
     @NotNull(message = "Status is required")
     private Boolean isAvailable = true;
 
