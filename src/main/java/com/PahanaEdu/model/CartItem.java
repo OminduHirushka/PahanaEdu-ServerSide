@@ -5,38 +5,34 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "books")
-public class Book {
+@Table(name = "cart_items")
+public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String isbn;
-
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "cart_id")
+    private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "category_id")
-    private BookCategory category;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "publisher_id")
-    private Publisher publisher;
-
-    @Column(nullable = false)
-    private int pages;
+    @JoinColumn(nullable = false, name = "book_id")
+    private Book book;
 
     @Column(nullable = false)
     private Double price;
 
     @Column(nullable = false)
-    private Boolean isAvailable = true;
+    private Integer quantity;
+
+    @Column(nullable = false)
+    private Double totalPrice;
 
 }

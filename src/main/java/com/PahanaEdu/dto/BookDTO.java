@@ -30,6 +30,9 @@ public class BookDTO {
 
     private int pages;
 
+    @NotNull(message = "Price is required")
+    private Double price;
+
     @NotNull(message = "Status is required")
     private Boolean isAvailable = true;
 
