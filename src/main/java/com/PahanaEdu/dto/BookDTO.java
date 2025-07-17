@@ -33,6 +33,9 @@ public class BookDTO {
     @NotNull(message = "Price is required")
     private Double price;
 
+    @NotNull(message = "Stock is required")
+    private Integer stock = 1;
+
     @NotNull(message = "Status is required")
     private Boolean isAvailable = true;
 

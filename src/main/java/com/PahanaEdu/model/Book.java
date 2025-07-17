@@ -37,6 +37,9 @@ public class Book {
     private Double price;
 
     @Column(nullable = false)
+    private Integer stock = 1;
+
+    @Column(nullable = false)
     private Boolean isAvailable = true;
 
 }
