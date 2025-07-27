@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findByAccountNumber(userDTO.getAccountNumber()).isPresent()) {
             throw new DuplicateResourceException("User already exists");
         }
-        if (userRepository.existsByEmail(userDTO.getEmail())) {
+        if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
             throw new DuplicateResourceException("Email already exists");
         }
         if (userRepository.existsByContact(userDTO.getContact())) {
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
             throw new DuplicateResourceException("Contact already exists");
         }
         if (!existingUser.getEmail().equals(userDTO.getEmail()) &&
-                userRepository.existsByEmail(userDTO.getEmail())) {
+                userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
             throw new DuplicateResourceException("Email already exists");
         }
 
