@@ -11,4 +11,5 @@ public interface UserService {
     UserDTO getUserByAccountNumber(String accountNumber);
     UserDTO updateUser(String accountNumber, UserDTO userDTO);
     void deleteUser(String accountNumber);
+    UserDTO findUserByToken(String token);
 }

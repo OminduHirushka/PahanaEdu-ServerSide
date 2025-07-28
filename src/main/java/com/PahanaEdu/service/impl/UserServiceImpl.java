@@ -1,5 +1,6 @@
 package com.PahanaEdu.service.impl;
 
+import com.PahanaEdu.config.JwtProvider;
 import com.PahanaEdu.dto.UserDTO;
 import com.PahanaEdu.exception.DuplicateResourceException;
 import com.PahanaEdu.exception.ResourceNotFoundException;
@@ -23,6 +24,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private JwtProvider jwtProvider;
 
     @Override
     public List<UserDTO> getAllUsers() {
@@ -69,5 +72,15 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         userRepository.delete(user);
+    }
+
+    @Override
+    public UserDTO findUserByToken(String token) {
+        String email = jwtProvider.getEmailFromToken(token);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        return modelMapper.map(user, UserDTO.class);
     }
 }

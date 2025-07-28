@@ -6,12 +6,16 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/category")
@@ -21,7 +25,18 @@ public class BookCategoryController {
 
     @PostMapping("/create-category")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> createCategory(@Valid @RequestBody BookCategoryDTO bookCategoryDTO) {
+    public ResponseEntity<Map<String, Object>> createCategory(
+            @Valid @RequestBody BookCategoryDTO bookCategoryDTO,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can create categories");
+        }
+
         BookCategoryDTO createdCategory = bookCategoryService.createBookCategory(bookCategoryDTO);
 
         Map<String, Object> response = new HashMap<>();
@@ -32,6 +47,7 @@ public class BookCategoryController {
     }
 
     @GetMapping("/")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getAllCategory() {
         List<BookCategoryDTO> allCategories = bookCategoryService.getAllBookCategories();
 
@@ -43,6 +59,7 @@ public class BookCategoryController {
     }
 
     @GetMapping("/name/{name}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getCategoryByName(@PathVariable String name) {
         BookCategoryDTO category = bookCategoryService.getBookCategoryByName(name);
 
@@ -55,7 +72,19 @@ public class BookCategoryController {
 
     @PutMapping("/update-category/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> updateCategory(@PathVariable Long id, @Valid @RequestBody BookCategoryDTO bookCategoryDTO) {
+    public ResponseEntity<Map<String, Object>> updateCategory(
+            @PathVariable Long id,
+            @Valid @RequestBody BookCategoryDTO bookCategoryDTO,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can update categories");
+        }
+
         BookCategoryDTO createdCategory = bookCategoryService.updateBookCategory(id, bookCategoryDTO);
 
         Map<String, Object> response = new HashMap<>();
@@ -67,7 +96,18 @@ public class BookCategoryController {
 
     @DeleteMapping("/delete-category/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteCategory(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can delete categories");
+        }
+
         bookCategoryService.deleteBookCategory(id);
 
         Map<String, Object> response = new HashMap<>();
