@@ -39,21 +39,48 @@ public class CartServiceImpl implements CartService {
     private ModelMapper modelMapper;
 
     @Override
+    public CartDTO createCartForUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+
+        Cart existingCart = cartRepository.findByUser_IdAndCheckedOutFalse(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart Not Found"));
+
+        if (existingCart != null) {
+            return modelMapper.map(existingCart, CartDTO.class);
+        }
+
+        Cart cart = new Cart();
+        cart.setUser(user);
+        cart.setCheckedOut(false);
+        cart.setTotalPrice(0.0);
+
+        Cart savedCart = cartRepository.save(cart);
+        return modelMapper.map(savedCart, CartDTO.class);
+    }
+
+    @Override
     public CartItemDTO addCartItem(CartItemDTO cartItemDTO, Long userID) {
         User user = userRepository.findById(userID)
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
-        Cart cart = cartRepository.findById(cartItemDTO.getCartId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart Not Found"));
         Book book = bookRepository.findById(cartItemDTO.getBookId())
                 .orElseThrow(() -> new ResourceNotFoundException("Book Not Found"));
 
-        CartDTO cartDTO = getCartByUserId(user.getId());
+        Cart cart = cartRepository.findByUser_IdAndCheckedOutFalse(userID)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUser(user);
+                    newCart.setCheckedOut(false);
+                    newCart.setTotalPrice(0.0);
+                    return cartRepository.save(newCart);
+                });
 
-        for (CartItem existingItem : cartDTO.getItems()) {
-            if (existingItem.getBook().getId().equals(book.getId())) {
-                int newQuantity = existingItem.getQuantity() + cartItemDTO.getQuantity();
-                return updateCartItemQuantity(existingItem.getId(), newQuantity);
-            }
+        CartItem existingItem = cartItemRepository.findByCartAndBook(cart, book)
+                .orElseThrow(() -> new ResourceNotFoundException("Item Not Found"));
+
+        if (existingItem != null) {
+            int newQuantity = existingItem.getQuantity() + cartItemDTO.getQuantity();
+            return updateCartItemQuantity(existingItem.getId(), newQuantity);
         }
 
         CartItem cartItem = new CartItem();
@@ -64,6 +91,7 @@ public class CartServiceImpl implements CartService {
         cartItem.setTotalPrice(book.getPrice() * cartItemDTO.getQuantity());
 
         CartItem savedCartItem = cartItemRepository.save(cartItem);
+        updateCartTotal(cart.getId());
         return modelMapper.map(savedCartItem, CartItemDTO.class);
     }
 
@@ -102,8 +130,15 @@ public class CartServiceImpl implements CartService {
         Cart existingCart = cartRepository.findByUser_IdAndCheckedOutFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart Not Found"));
 
+        if (existingCart.getItems().isEmpty()) {
+            throw new IllegalStateException("Cannot checkout empty cart");
+        }
+
         existingCart.setCheckedOut(true);
-        return modelMapper.map(existingCart, CartDTO.class);
+
+        Cart savedCart = cartRepository.save(existingCart);
+        createCartForUser(userId);
+        return modelMapper.map(savedCart, CartDTO.class);
     }
 
     @Override
@@ -115,6 +150,7 @@ public class CartServiceImpl implements CartService {
         existingCartItem.setPrice((existingCartItem.getBook().getPrice() * quantity));
 
         CartItem savedCartItem = cartItemRepository.save(existingCartItem);
+        updateCartTotal(existingCartItem.getCart().getId());
         return modelMapper.map(savedCartItem, CartItemDTO.class);
     }
 
@@ -127,5 +163,28 @@ public class CartServiceImpl implements CartService {
 
         cartItemRepository.delete(existingCartItem);
         return modelMapper.map(existingCartItem, CartItemDTO.class);
+    }
+
+    @Override
+    public void updateCartTotal(Long cartId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart Not Found"));
+
+        double total = cart.getItems().stream()
+                .mapToDouble(CartItem::getTotalPrice)
+                .sum();
+
+        cart.setTotalPrice(total);
+        cartRepository.save(cart);
+    }
+
+    @Override
+    public void clearCart(Long userId) {
+        Cart cart = cartRepository.findByUser_IdAndCheckedOutFalse(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart Not Found"));
+
+        cartItemRepository.deleteAll(cart.getItems());
+        cart.setTotalPrice(0.0);
+        cartRepository.save(cart);
     }
 }
