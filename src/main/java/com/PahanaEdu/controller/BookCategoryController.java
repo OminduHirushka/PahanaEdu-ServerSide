@@ -1,12 +1,12 @@
 package com.PahanaEdu.controller;
 
 import com.PahanaEdu.dto.BookCategoryDTO;
-import com.PahanaEdu.model.BookCategory;
 import com.PahanaEdu.service.BookCategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -20,6 +20,7 @@ public class BookCategoryController {
     private BookCategoryService bookCategoryService;
 
     @PostMapping("/create-category")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> createCategory(@Valid @RequestBody BookCategoryDTO bookCategoryDTO) {
         BookCategoryDTO createdCategory = bookCategoryService.createBookCategory(bookCategoryDTO);
 
@@ -53,6 +54,7 @@ public class BookCategoryController {
     }
 
     @PutMapping("/update-category/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> updateCategory(@PathVariable Long id, @Valid @RequestBody BookCategoryDTO bookCategoryDTO) {
         BookCategoryDTO createdCategory = bookCategoryService.updateBookCategory(id, bookCategoryDTO);
 
@@ -64,6 +66,7 @@ public class BookCategoryController {
     }
 
     @DeleteMapping("/delete-category/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> deleteCategory(@PathVariable Long id) {
         bookCategoryService.deleteBookCategory(id);
 

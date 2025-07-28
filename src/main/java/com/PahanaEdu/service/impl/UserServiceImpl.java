@@ -23,34 +23,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private ModelMapper modelMapper;
 
-    @Override
-    public UserDTO createUser(UserDTO userDTO) {
-        if (userRepository.findByAccountNumber(userDTO.getAccountNumber()).isPresent()) {
-            throw new DuplicateResourceException("User already exists");
-        }
-        if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
-            throw new DuplicateResourceException("Email already exists");
-        }
-        if (userRepository.existsByContact(userDTO.getContact())) {
-            throw new DuplicateResourceException("Contact already exists");
-        }
-        if (userRepository.existsByNic(userDTO.getNic())) {
-            throw new DuplicateResourceException("Nic already exists");
-        }
-
-        User user = new User();
-        user.setAccountNumber(userDTO.getAccountNumber());
-        user.setFullName(userDTO.getFullName());
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(userDTO.getPassword());
-        user.setContact(userDTO.getContact());
-        user.setNic(userDTO.getNic());
-        user.setAddress(userDTO.getAddress());
-        user.setRole(userDTO.getRole());
-
-        User savedUser = userRepository.save(user);
-        return modelMapper.map(savedUser, UserDTO.class);
-    }
 
     @Override
     public List<UserDTO> getAllUsers() {

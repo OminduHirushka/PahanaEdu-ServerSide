@@ -7,7 +7,6 @@ import java.util.List;
 
 @Service
 public interface UserService {
-    UserDTO createUser(UserDTO userDTO);
     List<UserDTO> getAllUsers();
     UserDTO getUserByAccountNumber(String accountNumber);
     UserDTO updateUser(String accountNumber, UserDTO userDTO);

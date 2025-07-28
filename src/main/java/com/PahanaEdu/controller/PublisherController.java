@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -19,6 +20,7 @@ public class PublisherController {
     private PublisherService publisherService;
 
     @PostMapping("/create-publisher")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> createPublisher(@Valid @RequestBody PublisherDTO publisherDTO) {
         PublisherDTO createdPublisher = publisherService.createPublisher(publisherDTO);
 
@@ -63,6 +65,7 @@ public class PublisherController {
     }
 
     @PutMapping("/update-publisher/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> updatePublisher(@PathVariable Long id, @Valid @RequestBody PublisherDTO publisherDTO) {
         PublisherDTO updatedPublisher = publisherService.updatePublisher(id, publisherDTO);
 
@@ -74,6 +77,7 @@ public class PublisherController {
     }
 
     @DeleteMapping("/delete-publisher/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> deletePublisher(@PathVariable Long id) {
         publisherService.deletePublisher(id);
 

@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -18,18 +19,8 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/create-user")
-    public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody UserDTO userDTO) {
-        UserDTO createdUser = userService.createUser(userDTO);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "User created successfully");
-        response.put("createdUser", createdUser);
-
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
-
     @GetMapping("/")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> getAllUsers() {
         List<UserDTO> allUsers = userService.getAllUsers();
 

@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -19,6 +20,7 @@ public class BookController {
     private BookService bookService;
 
     @PostMapping("/create-book")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> createBook(@Valid @RequestBody BookDTO bookDTO) {
         BookDTO createdBook = bookService.createBook(bookDTO);
 
@@ -74,6 +76,7 @@ public class BookController {
     }
 
     @PatchMapping("/update-stock/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> updateStock(
             @PathVariable Long id,
             @RequestParam Integer quantity) {
@@ -87,6 +90,7 @@ public class BookController {
     }
 
     @PutMapping("/update-book/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> updateBook(
             @PathVariable Long id,
             @Valid @RequestBody BookDTO bookDTO) {
@@ -100,6 +104,7 @@ public class BookController {
     }
 
     @DeleteMapping("/delete-book/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
 
