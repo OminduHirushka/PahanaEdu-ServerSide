@@ -7,6 +7,7 @@ import com.PahanaEdu.dto.auth.LoginRequest;
 import com.PahanaEdu.exception.DuplicateResourceException;
 import com.PahanaEdu.exception.ResourceNotFoundException;
 import com.PahanaEdu.model.User;
+import com.PahanaEdu.model.enums.USER_ROLE;
 import com.PahanaEdu.repository.UserRepository;
 import com.PahanaEdu.service.impl.UserDetailServiceImpl;
 import jakarta.validation.Valid;
@@ -25,7 +26,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -146,5 +149,30 @@ public class AuthController {
         }
 
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+
+    @GetMapping("/last-account-numbers")
+    public ResponseEntity<?> getLastAccountNumbers() {
+        try {
+            Map<String, String> lastNumber = new HashMap<>();
+
+            String lastCustomer = userRepository.findLastAccountNumberByRole(USER_ROLE.CUSTOMER)
+                    .orElse("CU-000");
+            String lastEmployee = userRepository.findLastAccountNumberByRole(USER_ROLE.EMPLOYEE)
+                    .orElse("UE-000");
+            String lastAdmin = userRepository.findLastAccountNumberByRole(USER_ROLE.ADMIN)
+                    .orElse("UA-000");
+            String lastManager = userRepository.findLastAccountNumberByRole(USER_ROLE.MANAGER)
+                    .orElse("UM-000");
+
+            lastNumber.put("CUSTOMER", lastCustomer);
+            lastNumber.put("EMPLOYEE", lastEmployee);
+            lastNumber.put("ADMIN", lastAdmin);
+            lastNumber.put("MANAGER", lastManager);
+
+            return new ResponseEntity<>(lastNumber, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to fetch account numbers", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

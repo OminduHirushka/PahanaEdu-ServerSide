@@ -54,7 +54,7 @@ public class AppConfig {
 
                 config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
                 config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedMethods(Collections.singletonList("*"));
+                config.setAllowedHeaders(Arrays.asList("*"));
                 config.setAllowCredentials(true);
                 config.setExposedHeaders(Collections.singletonList("Authorization"));
                 config.setMaxAge(3600L);
