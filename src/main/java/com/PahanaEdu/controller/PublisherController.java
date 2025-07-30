@@ -6,12 +6,16 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/publisher")
@@ -21,7 +25,18 @@ public class PublisherController {
 
     @PostMapping("/create-publisher")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> createPublisher(@Valid @RequestBody PublisherDTO publisherDTO) {
+    public ResponseEntity<Map<String, Object>> createPublisher(
+            @Valid @RequestBody PublisherDTO publisherDTO,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can add publishers");
+        }
+
         PublisherDTO createdPublisher = publisherService.createPublisher(publisherDTO);
 
         Map<String, Object> response = new HashMap<>();
@@ -32,6 +47,7 @@ public class PublisherController {
     }
 
     @GetMapping("/")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getAllPublishers() {
         List<PublisherDTO> allPublishers = publisherService.getAllPublishers();
 
@@ -43,6 +59,7 @@ public class PublisherController {
     }
 
     @GetMapping("/code/{code}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getPublisherByCode(@PathVariable String code) {
         PublisherDTO publisherDTO = publisherService.getPublisherByCode(code);
 
@@ -54,6 +71,7 @@ public class PublisherController {
     }
 
     @GetMapping("/name/{name}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getPublisherByName(@PathVariable String name) {
         PublisherDTO publisherDTO = publisherService.getPublisherByName(name);
 
@@ -66,7 +84,19 @@ public class PublisherController {
 
     @PutMapping("/update-publisher/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> updatePublisher(@PathVariable Long id, @Valid @RequestBody PublisherDTO publisherDTO) {
+    public ResponseEntity<Map<String, Object>> updatePublisher(
+            @PathVariable Long id,
+            @Valid @RequestBody PublisherDTO publisherDTO,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can update publishers");
+        }
+
         PublisherDTO updatedPublisher = publisherService.updatePublisher(id, publisherDTO);
 
         Map<String, Object> response = new HashMap<>();
@@ -78,7 +108,18 @@ public class PublisherController {
 
     @DeleteMapping("/delete-publisher/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> deletePublisher(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deletePublisher(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can delete publishers");
+        }
+
         publisherService.deletePublisher(id);
 
         Map<String, Object> response = new HashMap<>();

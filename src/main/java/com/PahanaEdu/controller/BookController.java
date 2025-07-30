@@ -6,12 +6,16 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/book")
@@ -21,7 +25,18 @@ public class BookController {
 
     @PostMapping("/create-book")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> createBook(@Valid @RequestBody BookDTO bookDTO) {
+    public ResponseEntity<Map<String, Object>> createBook(
+            @Valid @RequestBody BookDTO bookDTO,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can add books");
+        }
+
         BookDTO createdBook = bookService.createBook(bookDTO);
 
         Map<String, Object> response = new HashMap<>();
@@ -32,6 +47,7 @@ public class BookController {
     }
 
     @GetMapping("/")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getAllBooks() {
         List<BookDTO> allBooks = bookService.getAllBooks();
 
@@ -43,6 +59,7 @@ public class BookController {
     }
 
     @GetMapping("/category/{category}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getAllBooksByCategory(@PathVariable String category) {
         List<BookDTO> books = bookService.getBooksByCategory(category);
 
@@ -54,6 +71,7 @@ public class BookController {
     }
 
     @GetMapping("/publisher/{publisher}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getAllBooksByPublisher(@PathVariable String publisher) {
         List<BookDTO> books = bookService.getBooksByPublisher(publisher);
 
@@ -65,6 +83,7 @@ public class BookController {
     }
 
     @GetMapping("/name/{name}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> getBookByName(@PathVariable String name) {
         BookDTO bookDTO = bookService.getBookByName(name);
 
@@ -79,21 +98,43 @@ public class BookController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> updateStock(
             @PathVariable Long id,
-            @RequestParam Integer quantity) {
-        BookDTO updatedBook = bookService.updateStock(id, quantity);
+            @RequestParam Integer quantity,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") &&
+                !roles.contains("ROLE_MANAGER") &&
+                !roles.contains("ROLE_EMPLOYEE")) {
+            throw new AccessDeniedException("Only EMPLOYEE, ADMIN and MANAGER can update stock");
+        }
+
+        BookDTO updatedStock = bookService.updateStock(id, quantity);
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Stock updated successfully");
-        response.put("updatedBook", updatedBook);
+        response.put("updatedBook", updatedStock);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PutMapping("/update-book/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> updateBook(
             @PathVariable Long id,
-            @Valid @RequestBody BookDTO bookDTO) {
+            @Valid @RequestBody BookDTO bookDTO,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can update books");
+        }
+
         BookDTO updatedBook = bookService.updateBook(id, bookDTO);
 
         Map<String, Object> response = new HashMap<>();
@@ -105,7 +146,18 @@ public class BookController {
 
     @DeleteMapping("/delete-book/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, Object>> deleteBook(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteBook(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+            throw new AccessDeniedException("Only ADMIN and MANAGER can delete books");
+        }
+
         bookService.deleteBook(id);
 
         Map<String, Object> response = new HashMap<>();

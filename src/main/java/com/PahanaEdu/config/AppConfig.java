@@ -31,7 +31,10 @@ public class AppConfig {
 
                 .authorizeHttpRequests(Authorize -> Authorize
                         .requestMatchers("/api/v1/auth/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/v1/book/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/category/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/publisher/**").permitAll()
 
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll())
@@ -51,7 +54,7 @@ public class AppConfig {
 
                 config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
                 config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedMethods(Collections.singletonList("*"));
+                config.setAllowedHeaders(Arrays.asList("*"));
                 config.setAllowCredentials(true);
                 config.setExposedHeaders(Collections.singletonList("Authorization"));
                 config.setMaxAge(3600L);
