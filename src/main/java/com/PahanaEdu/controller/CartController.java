@@ -76,6 +76,17 @@ public class CartController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/user/{accNum}")
+    public ResponseEntity<Map<String, Object>> getCartByUserAccountNumber(@PathVariable String accNum) {
+        CartDTO cart = cartService.getCartByUserAccountNumber(accNum);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "User cart retrieved successfully");
+        response.put("cart", cart);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PostMapping("/{userId}/checkout")
     public ResponseEntity<Map<String, Object>> checkOutCart(@PathVariable Long userId) {
         CartDTO checkedOutCart = cartService.checkOutCart(userId);

@@ -175,4 +175,32 @@ public class AuthController {
             return new ResponseEntity<>("Failed to fetch account numbers", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        try {
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
+            }
+
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            Map<String, Object> userResponse = new HashMap<>();
+            userResponse.put("accountNumber", user.getAccountNumber());
+            userResponse.put("fullName", user.getFullName());
+            userResponse.put("email", user.getEmail());
+            userResponse.put("contact", user.getContact());
+            userResponse.put("nic", user.getNic());
+            userResponse.put("address", user.getAddress());
+            userResponse.put("role", user.getRole());
+
+            return new ResponseEntity<>(userResponse, HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to fetch user details", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

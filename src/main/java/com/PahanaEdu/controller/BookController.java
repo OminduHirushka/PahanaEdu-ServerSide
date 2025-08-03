@@ -94,7 +94,7 @@ public class BookController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping("/update-stock/{id}")
+    @PutMapping("/update-stock/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> updateStock(
             @PathVariable Long id,

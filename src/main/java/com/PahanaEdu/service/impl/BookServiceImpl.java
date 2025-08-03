@@ -35,7 +35,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookDTO createBook(BookDTO bookDTO) {
         if (bookRepository.existsByIsbn(bookDTO.getIsbn())) {
-            throw new DuplicateResourceException("ISBN already exists");
+            throw new DuplicateResourceException("ISBN already exists"  );
         }
 
         BookCategory category = bookCategoryRepository.findByName(bookDTO.getCategoryName())
@@ -49,6 +49,9 @@ public class BookServiceImpl implements BookService {
         book.setCategory(category);
         book.setPublisher(publisher);
         book.setPages(bookDTO.getPages());
+        book.setPrice(bookDTO.getPrice());
+        book.setDescription(bookDTO.getDescription());
+        book.setCover(bookDTO.getCover());
         book.setIsAvailable(bookDTO.getIsAvailable());
 
         Book savedBook = bookRepository.save(book);
@@ -130,6 +133,10 @@ public class BookServiceImpl implements BookService {
         existingBook.setCategory(category);
         existingBook.setPublisher(publisher);
         existingBook.setPages(bookDTO.getPages());
+        existingBook.setStock(bookDTO.getStock());
+        existingBook.setPrice(bookDTO.getPrice());
+        existingBook.setDescription(bookDTO.getDescription());
+        existingBook.setCover(bookDTO.getCover());
         existingBook.setIsAvailable(bookDTO.getIsAvailable());
 
         Book savedBook = bookRepository.save(existingBook);

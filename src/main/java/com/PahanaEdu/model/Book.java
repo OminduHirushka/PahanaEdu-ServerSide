@@ -40,6 +40,12 @@ public class Book {
     private Integer stock = 1;
 
     @Column(nullable = false)
+    private String description;
+
+    @Column
+    private String cover;
+
+    @Column(nullable = false)
     private Boolean isAvailable = true;
 
 }
