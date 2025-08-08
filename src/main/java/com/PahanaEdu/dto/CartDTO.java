@@ -15,6 +15,7 @@ public class CartDTO {
 
     private Long id;
     private Long userId;
+    private String userAccountNumber;
     private List<CartItem> items;
     private Double totalPrice;
     private boolean checkedOut;

@@ -12,6 +12,9 @@ public class CartItemDTO {
     private Long id;
     private Long cartId;
     private Long bookId;
+    private String bookName;
+    private String bookCover;
+    private String publisherName;
     private Double price;
     private Integer quantity;
     private Double totalPrice;
