@@ -123,16 +123,49 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderDTO> getOrdersByPaymentStatus(PAYMENT_STATUS paymentStatus) {
+        return orderRepository.findByPaymentStatus(paymentStatus).stream()
+                .map(order -> modelMapper.map(order, OrderDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public OrderDTO updateOrderStatus(Long id, ORDER_STATUS orderStatus) {
-        Order order = orderRepository.findById(id)
+        try {
+            System.out.println("=== Starting updateOrderStatus ===");
+            System.out.println("ID: " + id + ", Status: " + orderStatus);
+
+            Order order = orderRepository.findOrderWithItemsById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+            System.out.println("Current status: " + order.getOrderStatus());
+
+            order.setOrderStatus(orderStatus);
+            order.setUpdatedAt(LocalDateTime.now());
+
+            if (orderStatus == ORDER_STATUS.COMPLETED) {
+                order.setPaymentStatus(PAYMENT_STATUS.PAID);
+            }
+
+            Order savedOrder = orderRepository.save(order);
+            System.out.println("Saved status: " + savedOrder.getOrderStatus());
+
+            return modelMapper.map(savedOrder, OrderDTO.class);
+
+        } catch (Exception e) {
+            System.err.println("Error updating order: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Override
+    public OrderDTO updatePaymentStatus(Long id, PAYMENT_STATUS paymentStatus) {
+        Order order = orderRepository.findOrderWithItemsById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
 
-        order.setOrderStatus(orderStatus);
+        order.setPaymentStatus(paymentStatus);
         order.setUpdatedAt(LocalDateTime.now());
-
-        if (orderStatus == ORDER_STATUS.COMPLETED) {
-            order.setPaymentStatus(PAYMENT_STATUS.PAID);
-        }
 
         Order savedOrder = orderRepository.save(order);
         return modelMapper.map(savedOrder, OrderDTO.class);
@@ -157,7 +190,6 @@ public class OrderServiceImpl implements OrderService {
         returnBooksToStock(order.getItems());
 
         order.setOrderStatus(ORDER_STATUS.CANCELLED);
-        order.setPaymentStatus(PAYMENT_STATUS.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
 
         Order savedOrder = orderRepository.save(order);
