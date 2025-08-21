@@ -1,6 +1,8 @@
 package com.PahanaEdu.controller;
 
 import com.PahanaEdu.dto.OrderDTO;
+import com.PahanaEdu.model.enums.ORDER_STATUS;
+import com.PahanaEdu.model.enums.PAYMENT_STATUS;
 import com.PahanaEdu.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +20,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/orders")
 public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    @PostMapping("/create-order")
+    @PostMapping("/create-order/{cartId}")
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'CUSTOMER')")
     public ResponseEntity<Map<String, Object>> createOrder(
+            @PathVariable Long cartId,
             @Valid @RequestBody OrderDTO orderDTO,
             Authentication authentication) {
 
@@ -37,7 +41,7 @@ public class OrderController {
             throw new AccessDeniedException("Only EMPLOYEE and CUSTOMER can create orders");
         }
 
-        OrderDTO createdOrder = orderService.createOrder(orderDTO);
+        OrderDTO createdOrder = orderService.createOrder(cartId, orderDTO);
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Order created successfully");
@@ -46,23 +50,9 @@ public class OrderController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/order/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> getOrderById(
-            @PathVariable Long id,
-            Authentication authentication) {
-
-        List<String> roles = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        if (!roles.contains("ROLE_ADMIN") &&
-                !roles.contains("ROLE_MANAGER") &&
-                !roles.contains("ROLE_EMPLOYEE") &&
-                !authentication.getName().equals(id)) {
-            throw new AccessDeniedException("You can only view your own order");
-        }
-
+    public ResponseEntity<Map<String, Object>> getOrderById(@PathVariable Long id) {
         OrderDTO order = orderService.getOrderById(id);
 
         Map<String, Object> response = new HashMap<>();
@@ -73,13 +63,13 @@ public class OrderController {
     }
 
     @GetMapping("/")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> getAllOrders(Authentication authentication) {
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER")) {
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER") && !roles.contains("ROLE_EMPLOYEE")) {
             throw new AccessDeniedException("Only ADMIN and MANAGER can view all orders");
         }
 
@@ -92,24 +82,10 @@ public class OrderController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/customer/{customerId}")
+    @GetMapping("/customer/{accountNumber}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> getOrdersByCustomer(
-            @PathVariable Long customerId,
-            Authentication authentication) {
-
-        List<String> roles = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        if (!roles.contains("ROLE_ADMIN") &&
-                !roles.contains("ROLE_MANAGER") &&
-                !roles.contains("ROLE_EMPLOYEE") &&
-                !authentication.getName().equals(customerId)) {
-            throw new AccessDeniedException("You can only view your own orders");
-        }
-
-        List<OrderDTO> orders = orderService.getOrdersByCustomer(customerId);
+    public ResponseEntity<Map<String, Object>> getOrdersByCustomer(@PathVariable String accountNumber) {
+        List<OrderDTO> orders = orderService.getOrdersByCustomer(accountNumber);
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Customer orders retrieved successfully");
@@ -118,22 +94,19 @@ public class OrderController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}/status")
-    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/update-order/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> updateOrderStatus(
             @PathVariable Long id,
-            @Valid @RequestParam String status,
+            @RequestParam("status") ORDER_STATUS status,
             Authentication authentication) {
 
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        if (!roles.contains("ROLE_ADMIN") &&
-                !roles.contains("ROLE_MANAGER") &&
-                !roles.contains("ROLE_EMPLOYEE") &&
-                !authentication.getName().equals(id)) {
-            throw new AccessDeniedException("You can only update your own order");
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER") && !roles.contains("ROLE_EMPLOYEE")) {
+            throw new AccessDeniedException("Only ADMIN, MANAGER and EMPLOYEE can update orders");
         }
 
         OrderDTO updatedOrder = orderService.updateOrderStatus(id, status);
@@ -141,6 +114,51 @@ public class OrderController {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Order status updated successfully");
         response.put("order", updatedOrder);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PutMapping("/update-payment/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    public ResponseEntity<Map<String, Object>> updatePaymentStatus(
+            @PathVariable Long id,
+            @RequestParam("paymentStatus") PAYMENT_STATUS paymentStatus, // Add explicit parameter name
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!roles.contains("ROLE_ADMIN") && !roles.contains("ROLE_MANAGER") && !roles.contains("ROLE_EMPLOYEE")) {
+            throw new AccessDeniedException("Only ADMIN, MANAGER, and EMPLOYEE can update payment status");
+        }
+
+        OrderDTO updatedOrder = orderService.updatePaymentStatus(id, paymentStatus);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Payment status updated successfully");
+        response.put("order", updatedOrder);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PutMapping("/cancel-order/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
+    public ResponseEntity<Map<String, Object>> cancelOrder(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        boolean isManager = roles.contains("ROLE_MANAGER");
+        String currentUser = authentication.getName();
+
+        orderService.cancelOrder(id, currentUser, isManager);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Order cancelled successfully");
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

@@ -38,7 +38,6 @@ public class UserDTO {
     @NotBlank(message = "Address is required")
     private String address;
 
-    @NotNull(message = "User role is required")
     private USER_ROLE role;
 
 }

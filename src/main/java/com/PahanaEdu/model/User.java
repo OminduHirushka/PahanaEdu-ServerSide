@@ -39,7 +39,6 @@ public class User {
     private String address;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private USER_ROLE role;
 
 }

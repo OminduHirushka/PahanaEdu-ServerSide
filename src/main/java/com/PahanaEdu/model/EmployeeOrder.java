@@ -14,8 +14,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "orders")
-public class Order {
+@Table(name = "employee_orders")
+public class EmployeeOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,14 +25,15 @@ public class Order {
     private String orderNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "employee_id", nullable = false)
+    private User employee;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> items;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private User customer;
 
-    @Column(nullable = false)
-    private String address;
+    @OneToMany(mappedBy = "employeeOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EmployeeOrderItem> items;
 
     @Column(name = "order_date", nullable = false)
     private LocalDateTime createdAt;
@@ -41,18 +42,15 @@ public class Order {
     private Double subTotal;
 
     @Column(nullable = false)
-    private Double shippingFee;
-
-    @Column(nullable = false)
     private Double totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PAYMENT_STATUS paymentStatus = PAYMENT_STATUS.PENDING;
+    private PAYMENT_STATUS paymentStatus = PAYMENT_STATUS.PAID;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ORDER_STATUS orderStatus = ORDER_STATUS.PENDING;
+    private ORDER_STATUS orderStatus = ORDER_STATUS.COMPLETED;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;

@@ -75,19 +75,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> updateUser(
             @PathVariable String accNum,
-            @Valid @RequestBody UserDTO userDTO,
-            Authentication authentication) {
-
-        List<String> roles = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        if (!roles.contains("ROLE_ADMIN") &&
-                !roles.contains("ROLE_MANAGER") &&
-                !roles.contains("ROLE_EMPLOYEE") &&
-                !authentication.getName().equals(accNum)) {
-            throw new AccessDeniedException("You can only update your own profile");
-        }
+            @Valid @RequestBody UserDTO userDTO) {
 
         UserDTO updatedUser = userService.updateUser(accNum, userDTO);
 

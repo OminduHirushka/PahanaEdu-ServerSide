@@ -12,18 +12,19 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDTO {
+public class EmployeeOrderDTO {
 
     private Long id;
     private String orderNumber;
-    private Long userId;
-    private String userAccountNumber;
-    private String userName;
+    private Long employeeId;
+    private String employeeAccountNumber;
+    private String employeeName;
+    private Long customerId;
+    private String customerAccountNumber;
+    private String customerName;
     private List<OrderItemDTO> items;
-    private String address;
     private LocalDateTime createdAt;
     private Double subtotal;
-    private Double shippingFee;
     private Double totalAmount;
     private PAYMENT_STATUS paymentStatus;
     private ORDER_STATUS orderStatus;
